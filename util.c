@@ -18,3 +18,13 @@ int _util_count_uint64_left_zeros(register uint64_t x) {
     return res;
 }
 #endif
+
+#ifndef _GNU_SOURCE
+#include <string.h>
+
+const char *_util_find_char_or_end(const char *s, char c) {
+    const char *result = strchr(s, c);
+    if (!result) return s + strlen(s);
+    return result;
+}
+#endif

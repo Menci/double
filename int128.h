@@ -16,6 +16,7 @@ typedef struct {
 
 extern const _uint128_t _UINT128_ZERO;
 extern const _uint128_t _UINT128_ONE;
+extern const _uint128_t _UINT128_MAX;
 
 int _uint128_count_left_zeros(const _uint128_t x);
 

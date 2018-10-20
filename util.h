@@ -17,6 +17,12 @@ uint32_t _util_uint64_low32(uint64_t x);
 int      _util_count_uint64_left_zeros(uint64_t x);
 #endif
 
+#ifdef _GNU_SOURCE
+#define _util_find_char_or_end strchrnul
+#else
+const char *_util_find_char_or_end(const char *s, char c);
+#endif
+
 #define INT3 asm ("int3")
 
 #endif // _MENCI_UTIL_H

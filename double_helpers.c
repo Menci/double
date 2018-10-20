@@ -1,7 +1,9 @@
-#include "double_util.h"
-#include "util.h"
+#include "double_helpers.h"
 
 #include <assert.h>
+
+#include "util.h"
+#include "double_output.h"
 
 #ifdef DEBUG
 #include <stdio.h>
@@ -20,11 +22,15 @@ void _fp_inspect_print(const char *var_name, const double_t x) {
     else if (fp_isdenormal(x)) type = "denormal";
     else if (fp_iszero(x)) type = "zero";
 
+    const int BUFFER_SIZE = 500;
+    char buffer[BUFFER_SIZE];
+    fp_output(x, 10, buffer);
+
     fprintf(stderr, "%s = %c %s\n(%s) [%lf] [%.20le]\n",
                                           var_name,
                                           x.sign ? '-' : '+',
                                           type,
-                                          "not implemented",
+                                          buffer,
                                           fp_reinterpret_to_double(x),
                                           fp_reinterpret_to_double(x));
     // Indent to make it easier to read.
@@ -58,6 +64,16 @@ double_t _fp_make_inf(base_type_t sign) {
     double_t result = FP_INF_POSITIVE;
     result.sign = sign;
     return result;
+}
+
+double_t _fp_from_uint128(_uint128_t x) {
+    if (!_uint128_to_bool(x)) return FP_ZERO;
+
+    // See comments in _fp_unsigned_mul
+    // The fraction value stored in double is the real value *
+    // (2 ^ _FP_ENCODING_LENGTH_FRACTION), so here it should have a
+    // default fraction of _FP_ENCODING_LENGTH_FRACTION.
+    return _fp_from_unified_uint128(x, _FP_ENCODING_LENGTH_FRACTION);
 }
 
 int _fp_compare_abs(const double_t x, const double_t y) {
@@ -101,6 +117,12 @@ _uint128_t _fp_get_extended_fraction(const double_t x, int target_bit_count, int
         *shl_amount = target_bit_count - (128 - _uint128_count_left_zeros(tmp));
         return _uint128_shl(tmp, *shl_amount);
     }
+}
+
+uint64_t _fp_get_real_fraction(const double_t x) {
+    uint64_t res = x.fraction;
+    if (fp_isnormal(x)) res |= 1ULL << _FP_ENCODING_LENGTH_FRACTION;
+    return res;
 }
 
 int _fp_get_real_exponent(const double_t x) {

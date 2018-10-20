@@ -2,25 +2,26 @@
 #ifndef DEBUG
 
 #include <stdio.h>
-#include "double.h"
+#include <string.h>
+#include "eval.h"
+#include "double_output.h"
 
 int main() {
-    double a, b;
-    char op[2];
-    scanf("%lf %s %lf", &a, op, &b);
-
-    double_t (*calc)(const double_t, const double_t);
-    if (*op == '+') calc = fp_add;
-    if (*op == '-') calc = fp_sub;
-    if (*op == '*') calc = fp_mul;
-    if (*op == '/') calc = fp_div;
-
-    double_t ta = fp_reinterpret_from_double(a),
-             tb = fp_reinterpret_from_double(b),
-             tc = calc(ta, tb);
-
-    double c = fp_reinterpret_to_double(tc);
-    printf("%.50lf\n", c);
+    const int BUFFER_SIZE = 1e6;
+    char s[BUFFER_SIZE];
+    while (~scanf(" %[^\n]", s)) {
+        double_t result = eval(s);
+        char buffer[BUFFER_SIZE];
+#ifdef CHECK
+        fp_output(result, 10, buffer);
+#else
+        fp_output(result, 1000, buffer);
+        int len = strlen(buffer);
+        while (buffer[len - 1] == '0') buffer[--len] = '\0';
+        if (buffer[len - 1] == '.') buffer[--len] = '\0';
+#endif
+        printf("%s\n", buffer);
+    }
 }
 
 #endif

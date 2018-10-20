@@ -1,11 +1,12 @@
 #include "double.h"
-#include "double_util.h"
+#include "double_helpers.h"
 
 #include <assert.h>
 
 // Some special constants.
 #define _FP_ENCODING_EXPONENT_ALL_ONE (~(base_type_t)0) >> (64 - _FP_ENCODING_LENGTH_EXPONENT)
 const double_t FP_ZERO = { 0, 0, 0 };
+const double_t FP_ONE = { 0, _FP_BIAS, 0 };
 const double_t FP_NAN = { 1, _FP_ENCODING_EXPONENT_ALL_ONE, 0 };
 const double_t FP_INF_POSITIVE = { 0, _FP_ENCODING_EXPONENT_ALL_ONE, 0 };
 const double_t FP_INF_NEGATIVE = { 0, _FP_ENCODING_EXPONENT_ALL_ONE, 1 };
@@ -161,6 +162,15 @@ double_t fp_reinterpret_from_double(double x) {
         double_t double_t_val;
     } u;
     u.double_val = x;
+    return u.double_t_val;
+}
+
+double_t fp_reinterpret_from_binary(uint64_t x) {
+    union {
+        uint64_t uint64_t_val;
+        double_t double_t_val;
+    } u;
+    u.uint64_t_val = x;
     return u.double_t_val;
 }
 

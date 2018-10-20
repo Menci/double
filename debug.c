@@ -5,10 +5,18 @@
 #include <stdint.h>
 
 #include "double.h"
+#include "double_input.h"
+#include "double_output.h"
+#include "double_helpers.h"
+#include "eval.h"
 #include "int128.h"
 
+uint32_t rand32() {
+	return ((uint32_t)rand() << 16 >> 16) | ((uint32_t)rand() << 16);
+}
+
 uint64_t rand64() {
-    return (((uint64_t)rand()) << 32) | ((uint64_t)rand());
+    return (((uint64_t)rand32()) << 32) | ((uint64_t)rand32());
 }
 
 double rand_double() {
@@ -23,8 +31,8 @@ double rand_double() {
         u.uint64_t_value = rand64();
         return u.double_value;
     } else {
-        double a = rand64() * (1ull << 63) + rand64(),
-               b = rand64() * (1ull << 63) + rand64();
+        double a = (double)rand64() * (double)(1ull << 63) + rand64(),
+               b = (double)rand64() * (double)(1ull << 63) + rand64();
         int sign = (rand() & 1) ? 1 : -1;
         return a / b * sign;
     }
@@ -60,11 +68,11 @@ void check() {
     for (int i = 1; ; i++) {
         double a = rand_double();
         double b = rand_double();
-        double c = a + b;
+        double c = a / b;
 
         double_t ta = fp_reinterpret_from_double(a);
         double_t tb = fp_reinterpret_from_double(b);
-        double_t tc = fp_add(ta, tb);
+        double_t tc = fp_div(ta, tb);
 
         if (fp_isdenormal(ta)) denormal_count++;
         if (fp_isdenormal(tb)) denormal_count++;
@@ -81,7 +89,7 @@ void check() {
             break;
         }
 
-        printf("Accepted on Test #%d, denormal_count = %d.\n", i, denormal_count);
+        if (i % 100000 == 0) printf("Accepted on Test #%d, denormal_count = %d.\n", i, denormal_count);
     }
 }
 
@@ -103,6 +111,37 @@ void debug() {
     puts(fp_reinterpret_to_double(z) == dx + dy ? "Result matched." : "Result NOT matched.");
 }
 
+void check_io() {
+    char s[100];
+    while (~scanf("%s", s)) {
+        double_t result_atof = fp_reinterpret_from_double(atof(s));
+        double_t result_input;
+        int len;
+        bool success = fp_input(s, &result_input, &len);
+
+        fp_inspect(result_atof);
+        fp_inspect(result_input);
+        puts(success ? "Parse success." : "Prase FAILED.");
+        printf("Prased length = %d\n", len);
+        puts(fp_reinterpret_to_double(result_atof) == fp_reinterpret_to_double(result_input) ? "Result matched." : "Result NOT matched.");
+
+        char buffer[10000];
+        fp_output(result_input, 5, buffer);
+        printf("buffer = %s\n", buffer);
+    }
+}
+
+void check_eval() {
+    char s[1000000];
+    while (~scanf("%s", s)) {
+        double_t result = eval(s);
+        char buffer[1000000];
+        fp_inspect(result);
+        fp_output(result, 10, buffer);
+        printf("%s\n", buffer);
+    }
+}
+
 int main() {
     // printf("%d\n", (int)sizeof(double_t));
 
@@ -114,10 +153,22 @@ int main() {
     // unsigned long long y = *((unsigned long long *)&x);
     // for (int i = 63; i >= 0; i--) printf("%d%c", !!(y & (1ull << i)), "\0\n"[!i]);
 
-    debug();
+    // debug();
 
     // check();
     // check_uint128();
+
+    // double log2(double);
+    // double t = log2(10);
+    // double_t tt = *(double_t *)&t;
+    // fp_inspect(tt);
+
+    // unsigned long long x;
+    // while (~scanf("%lld", &x)) fp_inspect(_fp_from_uint128(x));
+
+    check_io();
+
+    // check_eval();
 }
 
 #endif

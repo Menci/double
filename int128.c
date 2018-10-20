@@ -7,9 +7,11 @@
 #if __SIZEOF_INT128__ == 16
 const _uint128_t _UINT128_ZERO = 0;
 const _uint128_t _UINT128_ONE = 1;
+const _uint128_t _UINT128_MAX = ~(_uint128_t)0;
 #else
 const _uint128_t _UINT128_ZERO = { 0, 0 };
 const _uint128_t _UINT128_ONE = { 1, 0 };
+const _uint128_t _UINT128_MAX = { ~(uint64_t)0, ~(uint64_t)0 };
 #endif
 
 #if __SIZEOF_INT128__ != 16
